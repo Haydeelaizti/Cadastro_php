@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poetsen+One&display=swap');
+
+
+ body {
+    background: linear-gradient( rgb(240, 189, 255), rgb(197, 245, 242));
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+ }
+
+ .container_cadastro {
+       width: 100%;
+    max-width: 400px;
+    padding: 2rem;
+    background-color: #d86ee4;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    text-align: center;
+ }
+
+ h2 {
+    margin-bottom: 1.5rem;
+    font-size: 1.8rem;
+    color: #6939a7;
+ }
+
+ .cadastro {
+    margin-bottom: 1.5rem;
+    font-size: 1.0rem;
+    color: #6939a7;
+ }
+
+ .submit-btn {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+ }
