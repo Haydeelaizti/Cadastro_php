@@ -88,6 +88,7 @@ $resultado = mysqli_query($db, $query);
                     <th>Código</th>
                     <th>Preço</th>
                     <th>Estoque</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -98,6 +99,10 @@ $resultado = mysqli_query($db, $query);
                     echo "<td>" . $produto['codigo'] . "</td>";
                     echo "<td>R$ " . number_format($produto['preco'], 2, ',', '.') . "</td>";
                     echo "<td>" . $produto['estoque'] . "</td>";
+                    echo "<td>
+                            <a href='editar.php?id=" . $produto['id'] . "' class='btn-editar'>Editar</a>
+                            <a href='apagar.php?id=" . $produto['id'] . "' class='btn-apagar' onclick='return confirm(\"Tem certeza que deseja apagar este produto?\")'>Apagar</a>
+                          </td>";
                     echo "</tr>";
                 }
                 ?>
