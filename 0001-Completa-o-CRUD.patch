@@ -1,0 +1,386 @@
+From d6ec18f706e352a20c55bc9404d25731af2766b8 Mon Sep 17 00:00:00 2001
+From: Sergio Vilar <sergio@vilar.cc>
+Date: Wed, 27 Nov 2024 22:06:54 -0300
+Subject: [PATCH 1/1] Completa o CRUD
+
+Signed-off-by: Sergio Vilar <sergio@vilar.cc>
+---
+ apagar.php     | 23 +++++++++++++++++++++++
+ atualizar.php  | 34 +++++++++++++++++++++++++++++++++
+ banco.sql      | 16 +++++++---------
+ cadastrar.php  | 30 +----------------------------
+ config.php     |  4 ++--
+ crieconta.css  | 51 +++++++++++++++++++++++++++++++++++++++++++++++++-
+ editar.php     | 41 ++++++++++++++++++++++++++++++++++++++++
+ formulario.php | 48 +++++++++++++++++++++++++++++++++++++++++++++++
+ index.php      | 22 ++++++++++++++++++++++
+ 9 files changed, 228 insertions(+), 41 deletions(-)
+ create mode 100644 apagar.php
+ create mode 100644 atualizar.php
+ create mode 100644 editar.php
+ create mode 100644 formulario.php
+
+diff --git a/apagar.php b/apagar.php
+new file mode 100644
+index 0000000..1513478
+--- /dev/null
++++ b/apagar.php
+@@ -0,0 +1,23 @@
++<?php
++// Inclui o arquivo de configuração do banco
++include('config.php');
++
++// Verifica se foi recebido um ID via GET
++if (!isset($_GET['id'])) {
++    header('Location: index.php?msg=' . urlencode('Erro: ID do produto não fornecido.'));
++    close_and_exit($db);
++}
++
++$id = $_GET['id'];
++
++// Prepara e executa a query para deletar o produto
++$queryDeletar = "DELETE FROM produtos WHERE id = $id";
++
++if (mysqli_query($db, $queryDeletar)) {
++    header('Location: index.php?msg=' . urlencode('Produto excluído com sucesso!'));
++} else {
++    header('Location: index.php?msg=' . urlencode('Erro ao excluir produto: ' . mysqli_error($db)));
++}
++
++close_and_exit($db);
++?>
+diff --git a/atualizar.php b/atualizar.php
+new file mode 100644
+index 0000000..6fdebca
+--- /dev/null
++++ b/atualizar.php
+@@ -0,0 +1,34 @@
++<?php
++// Inclui arquivo de configuração do banco
++include('config.php');
++
++// Verifica se recebeu os dados via POST
++if (!isset($_POST['id']) || !isset($_POST['nome']) || !isset($_POST['codigo']) || !isset($_POST['preco']) || !isset($_POST['estoque'])) {
++    header('Location: index.php?msg=' . urlencode('Erro: Dados incompletos.'));
++    close_and_exit($db);
++}
++
++// Obtém os dados do formulário
++$id = $_POST['id'];
++$nome = $_POST['nome'];
++$codigo = $_POST['codigo'];
++$preco = $_POST['preco'];
++$estoque = $_POST['estoque'];
++
++// Prepara e executa a query para atualizar o produto
++$query = "UPDATE produtos SET
++            nome = '$nome',
++            codigo = '$codigo',
++            preco = $preco,
++            estoque = $estoque
++          WHERE id = $id";
++
++if (mysqli_query($db, $query)) {
++    header('Location: index.php?msg=' . urlencode('Produto atualizado com sucesso!'));
++} else {
++    header('Location: index.php?msg=' . urlencode('Erro ao atualizar produto: ' . mysqli_error($db)));
++}
++
++// Fecha a conexão com o banco
++close_and_exit($db);
++?>
+diff --git a/banco.sql b/banco.sql
+index 2be4ff6..8c044c1 100644
+--- a/banco.sql
++++ b/banco.sql
+@@ -7,17 +7,15 @@
+ /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+ /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+ 
+-DROP TABLE IF EXISTS `usuario`;
+-CREATE TABLE `usuario` (
++DROP TABLE IF EXISTS `produtos`;
++CREATE TABLE `produtos` (
+   `id` int(11) NOT NULL AUTO_INCREMENT,
+   `nome` varchar(100) NOT NULL,
+-  `email` varchar(100) NOT NULL,
+-  `senha` varchar(255) NOT NULL,
+-  `data_nascimento` date NOT NULL,
+-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+-  PRIMARY KEY (`id`),
+-  UNIQUE KEY `email` (`email`)
+-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
++  `codigo` varchar(50) NOT NULL,
++  `preco` decimal(10,2) NOT NULL,
++  `estoque` int(11) NOT NULL,
++  PRIMARY KEY (`id`)
++) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+ 
+ 
+ 
+diff --git a/cadastrar.php b/cadastrar.php
+index cff9bb2..ddab63d 100644
+--- a/cadastrar.php
++++ b/cadastrar.php
+@@ -8,34 +8,6 @@
+   </head>
+ 
+   <body>
+-    <form method="POST" action="inserir.php" class="container_cadastro">
+-      <h2>Cadastro de Produtos</h2>
+-
+-      <div class="form-group">
+-        <label for="nome" class="cadastro">Nome do Produto: </label>
+-        <br />
+-        <input type="text" id="nome" name="nome" required />
+-      </div>
+-
+-      <div class="form-group">
+-        <label for="codigo" class="cadastro">Código do Produto: </label>
+-        <br />
+-        <input type="text" id="codigo" name="codigo" required />
+-      </div>
+-
+-      <div class="form-group">
+-        <label for="preco" class="cadastro">Preço: </label>
+-        <br />
+-        <input type="number" id="preco" name="preco" step="0.01" min="0" required />
+-      </div>
+-
+-      <div class="form-group">
+-        <label for="estoque" class="cadastro">Quantidade em Estoque: </label>
+-        <br />
+-        <input type="number" id="estoque" name="estoque" min="0" required />
+-      </div>
+-
+-      <button type="submit" class="submit-btn">Cadastrar</button>
+-    </form>
++    <?php include('formulario.php'); ?>
+   </body>
+ </html>
+diff --git a/config.php b/config.php
+index bacc70a..ad89816 100644
+--- a/config.php
++++ b/config.php
+@@ -7,8 +7,8 @@ error_reporting(E_ALL);
+ $dbHost = 'localhost';
+ $dbUsername = 'root';
+ $dbPassword = '';
+-$dbName = 'dados_doceria';
+-$port = 3306;
++$dbName = 'doceria';
++$port = 3307;
+ 
+ // Cria a conexão com o banco de dados
+ $db = new mysqli($dbHost, $dbUsername, $dbPassword, $dbName, $port);
+diff --git a/crieconta.css b/crieconta.css
+index 7dd4a0e..dbc61f4 100644
+--- a/crieconta.css
++++ b/crieconta.css
+@@ -43,4 +43,53 @@
+     font-size: 1rem;
+     cursor: pointer;
+     transition: background-color 0.3s;
+- }
+\ No newline at end of file
++ }
++
++ .container_cadastro {
++   width: 80%;
++   max-width: 600px;
++   margin: 20px auto;
++   padding: 20px;
++   background-color: #fff;
++   border-radius: 8px;
++   box-shadow: 0 0 10px rgba(0,0,0,0.1);
++}
++
++.cadastro {
++   margin-bottom: 15px;
++}
++
++label {
++   display: block;
++   margin-bottom: 5px;
++   font-weight: bold;
++}
++
++input {
++   width: 100%;
++   padding: 8px;
++   border: 1px solid #ddd;
++   border-radius: 4px;
++   box-sizing: border-box;
++}
++
++.submit-btn {
++   width: 100%;
++   padding: 10px;
++   background-color: #4CAF50;
++   color: white;
++   border: none;
++   border-radius: 4px;
++   cursor: pointer;
++   font-weight: bold;
++}
++
++.submit-btn:hover {
++   background-color: #45a049;
++}
++
++h2 {
++   text-align: center;
++   margin-bottom: 20px;
++   color: #333;
++}
+diff --git a/editar.php b/editar.php
+new file mode 100644
+index 0000000..48cb792
+--- /dev/null
++++ b/editar.php
+@@ -0,0 +1,41 @@
++<?php
++// Inclui o arquivo de configuração do banco
++include('config.php');
++
++// Verifica se foi recebido um ID via GET
++if (!isset($_GET['id'])) {
++    header('Location: index.php?msg=' . urlencode('Erro: ID do produto não fornecido.'));
++    close_and_exit($db);
++}
++
++$id = $_GET['id'];
++
++// Busca os dados do produto
++$query = "SELECT * FROM produtos WHERE id = $id";
++$resultado = mysqli_query($db, $query);
++
++if (!$resultado || mysqli_num_rows($resultado) == 0) {
++    header('Location: index.php?msg=' . urlencode('Erro: Produto não encontrado.'));
++    close_and_exit($db);
++}
++
++// Obtém os dados do produto
++$produto = mysqli_fetch_assoc($resultado);
++?>
++
++<!DOCTYPE html>
++<html lang="pt-BR">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <link rel="stylesheet" href="crieconta.css">
++    <title>Editar Produto</title>
++</head>
++<body>
++    <?php include('formulario.php'); ?>
++</body>
++</html>
++
++<?php
++close_and_exit($db);
++?>
+diff --git a/formulario.php b/formulario.php
+new file mode 100644
+index 0000000..0589569
+--- /dev/null
++++ b/formulario.php
+@@ -0,0 +1,48 @@
++<?php
++// Verifica se é uma edição (produto fornecido)
++$editando = isset($produto);
++?>
++
++<div class="container_cadastro">
++    <h2><?php echo $editando ? 'Editar' : 'Cadastrar'; ?> Produto</h2>
++
++    <form action="<?php echo $editando ? 'atualizar.php' : 'salvar.php'; ?>" method="POST">
++        <?php if($editando): ?>
++            <input type="hidden" name="id" value="<?php echo $produto['id']; ?>">
++        <?php endif; ?>
++
++        <div class="cadastro">
++            <label for="nome">Nome do Produto:</label>
++            <input type="text" id="nome" name="nome" required
++                value="<?php echo $editando ? $produto['nome'] : ''; ?>">
++        </div>
++
++        <div class="cadastro">
++            <label for="codigo">Código:</label>
++            <input type="text" id="codigo" name="codigo" required
++                value="<?php echo $editando ? $produto['codigo'] : ''; ?>">
++        </div>
++
++        <div class="cadastro">
++            <label for="preco">Preço:</label>
++            <input type="number" id="preco" name="preco" step="0.01" required
++                value="<?php echo $editando ? $produto['preco'] : ''; ?>">
++        </div>
++
++        <div class="cadastro">
++            <label for="estoque">Quantidade em Estoque:</label>
++            <input type="number" id="estoque" name="estoque" required
++                value="<?php echo $editando ? $produto['estoque'] : ''; ?>">
++        </div>
++
++        <button type="submit" class="submit-btn">
++            <?php echo $editando ? 'Atualizar' : 'Cadastrar'; ?> Produto
++        </button>
++    </form>
++
++    <a href="index.php">
++        <button type="button" class="submit-btn" style="margin-top: 10px; background-color: #6c757d;">
++            Voltar
++        </button>
++    </a>
++</div>
+diff --git a/index.php b/index.php
+index ca77c92..1cf61d8 100644
+--- a/index.php
++++ b/index.php
+@@ -65,6 +65,23 @@ $resultado = mysqli_query($db, $query);
+             font-style: italic;
+             color: #666;
+         }
++        .btn-apagar {
++            color: #dc3545;
++            text-decoration: none;
++            padding: 5px 10px;
++        }
++        .btn-apagar:hover {
++            text-decoration: underline;
++        }
++        .btn-editar {
++            color: #007bff;
++            text-decoration: none;
++            padding: 5px 10px;
++            margin-right: 10px;
++        }
++        .btn-editar:hover {
++            text-decoration: underline;
++        }
+     </style>
+ </head>
+ <body>
+@@ -88,6 +105,7 @@ $resultado = mysqli_query($db, $query);
+                     <th>Código</th>
+                     <th>Preço</th>
+                     <th>Estoque</th>
++                    <th>Ações</th>
+                 </tr>
+             </thead>
+             <tbody>
+@@ -98,6 +116,10 @@ $resultado = mysqli_query($db, $query);
+                     echo "<td>" . $produto['codigo'] . "</td>";
+                     echo "<td>R$ " . number_format($produto['preco'], 2, ',', '.') . "</td>";
+                     echo "<td>" . $produto['estoque'] . "</td>";
++                    echo "<td>
++                            <a href='editar.php?id=" . $produto['id'] . "' class='btn-editar'>Editar</a>
++                            <a href='apagar.php?id=" . $produto['id'] . "' class='btn-apagar' onclick='return confirm(\"Tem certeza que deseja apagar este produto?\")'>Apagar</a>
++                          </td>";
+                     echo "</tr>";
+                 }
+                 ?>
+-- 
+2.43.0
+
